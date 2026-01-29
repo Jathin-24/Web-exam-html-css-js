@@ -85,7 +85,7 @@ export const ExamPage = () => {
       isAutoSubmitted: isAuto,
     };
 
-    saveSubmission(submission);
+    await saveSubmission(submission);
     setExamSession(null);
     
     toast.success(isAuto ? 'Exam auto-submitted due to violations' : 'Exam submitted successfully!');
@@ -111,15 +111,19 @@ export const ExamPage = () => {
       return;
     }
 
-    const examData = getExamById(examId);
-    if (!examData) {
-      toast.error('Exam not found');
-      navigate('/student/exams');
-      return;
-    }
+    const loadExam = async () => {
+      const examData = await getExamById(examId);
+      if (!examData) {
+        toast.error('Exam not found');
+        navigate('/student/exams');
+        return;
+      }
 
-    setExam(examData);
-    setTimeRemaining(examData.duration * 60);
+      setExam(examData);
+      setTimeRemaining(examData.duration * 60);
+    };
+
+    loadExam();
   }, [examId, student, navigate]);
 
   // Timer

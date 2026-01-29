@@ -26,32 +26,43 @@ export const StudentLogin = () => {
     setIsLoading(true);
 
     try {
-      // Check if student exists or create new
-      let student = findStudentByRollNo(rollNo.trim());
+      console.log('Starting login for roll number:', rollNo.trim());
       
-      if (student) {
-        // Validate name matches
-        if (student.name.toLowerCase() !== name.trim().toLowerCase()) {
-          toast.error('Name does not match the roll number');
-          setIsLoading(false);
-          return;
-        }
-      } else {
-        // Create new student
-        student = {
-          id: `student-${Date.now()}`,
-          rollNo: rollNo.trim(),
-          name: name.trim(),
-          createdAt: new Date().toISOString(),
-        };
-        saveStudent(student);
-      }
+      // Always create/get a student (simpler for initial setup)
+      const studentId = `student-${rollNo.trim().toLowerCase()}`;
+      const student: Student = {
+        id: studentId,
+        rollNo: rollNo.trim(),
+        name: name.trim(),
+        createdAt: new Date().toISOString(),
+      };
+
+      // Try to save student (will upsert - update if exists, create if not)
+      await saveStudent(student);
+      console.log('Student saved successfully:', student);
 
       setCurrentStudent(student);
       toast.success('Login successful!');
       navigate('/student/exams');
-    } catch (error) {
-      toast.error('Login failed. Please try again.');
+    } catch (error: any) {
+      console.error('Student login error:', error);
+      console.error('Error message:', error?.message);
+      console.error('Error details:', error?.details);
+      
+      // Check if it's a table not found error (common when DB not initialized)
+      const errorMsg = error?.message || 'Unknown error';
+      const isTableError = errorMsg.includes('relation') || errorMsg.includes('does not exist') || errorMsg.includes('PGRST');
+      
+      if (isTableError) {
+        toast.error(
+          'Database tables not initialized. Visit /test to check Supabase connection.',
+          {
+            duration: 5000,
+          }
+        );
+      } else {
+        toast.error(`Login failed: ${errorMsg}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -102,6 +113,10 @@ export const StudentLogin = () => {
             <Button type="submit" className="w-full h-11" disabled={isLoading}>
               {isLoading ? 'Logging in...' : 'Start Exam'}
             </Button>
+
+            <a href="/test" className="block text-center text-sm text-muted-foreground hover:text-primary mt-2">
+              Not working? Run diagnostic test →
+            </a>
 
             <p className="text-center text-sm text-muted-foreground">
               Are you an admin?{' '}

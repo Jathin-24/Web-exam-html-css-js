@@ -27,16 +27,21 @@ export const SubmissionView = () => {
       return;
     }
 
-    const allSubmissions = getSubmissions();
-    const found = allSubmissions.find(s => s.id === submissionId);
-    
-    if (!found) {
-      navigate('/admin/dashboard');
-      return;
-    }
+    const loadSubmission = async () => {
+      const allSubmissions = await getSubmissions();
+      const found = allSubmissions.find(s => s.id === submissionId);
+      
+      if (!found) {
+        navigate('/admin/dashboard');
+        return;
+      }
 
-    setSubmission(found);
-    setExam(getExamById(found.examId) || null);
+      setSubmission(found);
+      const examData = await getExamById(found.examId);
+      setExam(examData || null);
+    };
+
+    loadSubmission();
   }, [submissionId, admin, navigate]);
 
   if (!submission || !admin) return null;

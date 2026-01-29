@@ -80,9 +80,11 @@ export const AdminDashboard = () => {
     loadData();
   }, [admin, navigate]);
 
-  const loadData = () => {
-    setExams(getExams());
-    setStudents(getStudents());
+  const loadData = async () => {
+    const examsData = await getExams();
+    const studentsData = await getStudents();
+    setExams(examsData);
+    setStudents(studentsData);
   };
 
   const handleLogout = () => {
@@ -99,7 +101,7 @@ export const AdminDashboard = () => {
     setFormAllowCopyPaste(false);
   };
 
-  const handleCreateExam = () => {
+  const handleCreateExam = async () => {
     if (!formTitle.trim()) {
       toast.error('Please enter an exam title');
       return;
@@ -116,14 +118,14 @@ export const AdminDashboard = () => {
       createdAt: new Date().toISOString(),
     };
 
-    saveExam(newExam);
+    await saveExam(newExam);
     setShowCreateDialog(false);
     resetForm();
-    loadData();
+    await loadData();
     toast.success('Exam created successfully!');
   };
 
-  const handleEditExam = () => {
+  const handleEditExam = async () => {
     if (!editingExam || !formTitle.trim()) {
       toast.error('Please enter an exam title');
       return;
@@ -138,11 +140,11 @@ export const AdminDashboard = () => {
       allowCopyPaste: formAllowCopyPaste,
     };
 
-    saveExam(updatedExam);
+    await saveExam(updatedExam);
     setShowEditDialog(false);
     setEditingExam(null);
     resetForm();
-    loadData();
+    await loadData();
     toast.success('Exam updated successfully!');
   };
 
@@ -156,22 +158,23 @@ export const AdminDashboard = () => {
     setShowEditDialog(true);
   };
 
-  const toggleExamActive = (exam: Exam) => {
+  const toggleExamActive = async (exam: Exam) => {
     const updatedExam = { ...exam, isActive: !exam.isActive };
-    saveExam(updatedExam);
-    loadData();
+    await saveExam(updatedExam);
+    await loadData();
     toast.success(`Exam ${updatedExam.isActive ? 'activated' : 'deactivated'}`);
   };
 
-  const handleDeleteExam = (examId: string) => {
-    deleteExam(examId);
-    loadData();
+  const handleDeleteExam = async (examId: string) => {
+    await deleteExam(examId);
+    await loadData();
     toast.success('Exam deleted successfully');
   };
 
-  const viewSubmissions = (exam: Exam) => {
+  const viewSubmissions = async (exam: Exam) => {
     setSelectedExam(exam);
-    setSubmissions(getSubmissionsByExam(exam.id));
+    const subs = await getSubmissionsByExam(exam.id);
+    setSubmissions(subs);
   };
 
   if (!admin) return null;

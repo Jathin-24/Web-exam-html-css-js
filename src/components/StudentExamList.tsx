@@ -10,6 +10,7 @@ import { Clock, FileCode, LogOut, CheckCircle, Play } from 'lucide-react';
 
 export const StudentExamList = () => {
   const [exams, setExams] = useState<Exam[]>([]);
+  const [submittedExams, setSubmittedExams] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   const student = getCurrentStudent();
 
@@ -21,14 +22,24 @@ export const StudentExamList = () => {
     loadExams();
   }, [student, navigate]);
 
-  const loadExams = () => {
-    const activeExams = getActiveExams();
+  const loadExams = async () => {
+    const activeExams = await getActiveExams();
     setExams(activeExams);
+    
+    // Check which exams are already submitted
+    const submitted = new Set<string>();
+    for (const exam of activeExams) {
+      const existingSubmission = await getSubmissionByStudentAndExam(student!.id, exam.id);
+      if (existingSubmission) {
+        submitted.add(exam.id);
+      }
+    }
+    setSubmittedExams(submitted);
   };
 
-  const handleStartExam = (exam: Exam) => {
+  const handleStartExam = async (exam: Exam) => {
     // Check if already submitted
-    const existingSubmission = getSubmissionByStudentAndExam(student!.id, exam.id);
+    const existingSubmission = await getSubmissionByStudentAndExam(student!.id, exam.id);
     if (existingSubmission) {
       toast.error('You have already submitted this exam');
       return;
@@ -41,10 +52,6 @@ export const StudentExamList = () => {
     setCurrentStudent(null);
     toast.success('Logged out successfully');
     navigate('/');
-  };
-
-  const hasSubmitted = (examId: string) => {
-    return !!getSubmissionByStudentAndExam(student!.id, examId);
   };
 
   if (!student) return null;
@@ -78,7 +85,7 @@ export const StudentExamList = () => {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {exams.map((exam) => {
-              const submitted = hasSubmitted(exam.id);
+              const submitted = submittedExams.has(exam.id);
               
               return (
                 <Card key={exam.id} className="hover:shadow-lg transition-shadow">

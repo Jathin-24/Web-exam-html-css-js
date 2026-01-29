@@ -9,6 +9,7 @@ import { StudentExamList } from "./components/StudentExamList";
 import { ExamPage } from "./components/ExamPage";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { SubmissionView } from "./components/SubmissionView";
+import { SupabaseTest2 } from "./components/SupabaseTest2";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,6 +21,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Debug/Test */}
+          <Route path="/test" element={<SupabaseTest2 />} />
+          
           {/* Student Routes */}
           <Route path="/" element={<StudentLogin />} />
           <Route path="/student/exams" element={<StudentExamList />} />
@@ -34,7 +38,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-    </TooltipProvider>
+     </TooltipProvider>
   </QueryClientProvider>
 );
 
